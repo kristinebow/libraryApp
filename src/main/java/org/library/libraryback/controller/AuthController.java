@@ -1,8 +1,6 @@
 package org.library.libraryback.controller;
 
-import lombok.Data;
 import org.library.libraryback.dto.AuthResponse;
-import org.library.libraryback.utility.JwtTokenProvider;
 import org.library.libraryback.dto.LoginRequest;
 import org.library.libraryback.dto.User;
 import org.library.libraryback.dto.UserRegistrationDTO;
@@ -10,7 +8,6 @@ import org.library.libraryback.repository.UserRepository;
 import org.library.libraryback.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

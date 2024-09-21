@@ -1,5 +1,8 @@
 package org.library.libraryback.dto;
 
+import lombok.Getter;
+
+@Getter
 public class AuthResponse {
     private String token;
 
@@ -7,7 +10,4 @@ public class AuthResponse {
         this.token = token;
     }
 
-    public String getToken() {
-        return token;
-    }
 }

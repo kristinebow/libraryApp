@@ -8,7 +8,6 @@ import lombok.Setter;
 import org.springframework.data.annotation.Id;
 
 import java.time.LocalDate;
-import java.util.Date;
 
 @Setter
 @Getter
