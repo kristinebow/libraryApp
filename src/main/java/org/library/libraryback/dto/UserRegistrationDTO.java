@@ -14,4 +14,11 @@ public class UserRegistrationDTO {
     private String email;
 
     private String password;
+
+    public UserRegistrationDTO(String mail, String first, String last, String password) {
+        this.firstName = first;
+        this.lastName = last;
+        this.email = mail;
+        this.password = password;
+    }
 }
