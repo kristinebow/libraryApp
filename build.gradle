@@ -44,7 +44,7 @@ dependencies {
     implementation 'javax.persistence:javax.persistence-api:2.2'
     implementation 'org.springframework.session:spring-session-jdbc:3.3.2'
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0' // Use the latest version
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'io.jsonwebtoken:jjwt:0.9.1'
@@ -59,6 +59,9 @@ dependencies {
     testImplementation 'io.projectreactor:reactor-test'
     testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
     testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'org.testcontainers:testcontainers:1.17.3' // Use the latest version
+    testImplementation 'org.testcontainers:junit-jupiter:1.17.3' // For JUnit 5
+    testImplementation 'org.testcontainers:postgresql:1.17.3' // Change to your specific database type
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 

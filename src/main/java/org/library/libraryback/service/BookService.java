@@ -3,6 +3,8 @@ package org.library.libraryback.service;
 import org.library.libraryback.dto.Book;
 import org.library.libraryback.repository.BookRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -78,6 +80,14 @@ public class BookService {
         } else {
             throw new NoSuchElementException("Book not found with ID: " + id);
         }
+    }
+
+    public Page<Book> searchBooks(String author, String title, int page, int size) {
+        if ((author == null || author.isEmpty()) && (title == null || title.isEmpty())) {
+            // Fetch all books if both parameters are empty
+            return bookRepository.findAll(PageRequest.of(page, size));
+        }
+        return bookRepository.findByAuthorContainingIgnoreCaseOrTitleContainingIgnoreCaseOrderByIdAsc(author, title, PageRequest.of(page, size));
     }
 
 }

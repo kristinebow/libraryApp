@@ -30,11 +30,16 @@ public class User {
 
     private String password;
 
+    private String role;
+
    public User(String email, String password) {
        this.email = email;
        this.password = password;
    }
 
     public User(String user, String password, ArrayList<Object> objects) {
+    }
+
+    public User(String userRole) {
     }
 }

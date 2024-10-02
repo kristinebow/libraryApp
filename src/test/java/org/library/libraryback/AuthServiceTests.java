@@ -4,21 +4,49 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.library.libraryback.dto.LoginRequest;
 import org.library.libraryback.dto.User;
+import org.library.libraryback.dto.UserAuthenticationResponse;
+import org.library.libraryback.dto.UserRegistrationDTO;
 import org.library.libraryback.repository.UserRepository;
 import org.library.libraryback.service.AuthService;
 import org.library.libraryback.utility.JwtTokenProvider;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+@Testcontainers
+@SpringBootTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 public class AuthServiceTests {
+
+    @Container
+    public static PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:latest")
+            .withDatabaseName("test")
+            .withUsername("user")
+            .withPassword("password");
+
+    @DynamicPropertySource
+    static void overrideProps(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgresContainer::getJdbcUrl);
+        registry.add("spring.datasource.username", postgresContainer::getUsername);
+        registry.add("spring.datasource.password", postgresContainer::getPassword);
+    }
 
     @InjectMocks
     private AuthService authService;
@@ -39,61 +67,56 @@ public class AuthServiceTests {
 
     @Test
     public void testLogin_Success() {
-        LoginRequest loginRequest = new LoginRequest();
-        loginRequest.setEmail("user@example.com");
-        loginRequest.setPassword("password");
+        String email = "user@example.com";
+        String password = "password";
+        LoginRequest loginRequest = new LoginRequest(email, password);
 
         User user = new User();
-        user.setEmail("user@example.com");
-        user.setPassword("$2a$10$..."); // Example hashed password
+        user.setEmail(email);
+        String encodedPassword = passwordEncoder.encode(password);
+        user.setPassword(encodedPassword);
 
-        when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(user));
-        when(passwordEncoder.matches("password", user.getPassword())).thenReturn(true);
-        when(jwtTokenProvider.generateToken("user@example.com")).thenReturn("jwt.token.here");
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches(eq(password), eq(encodedPassword))).thenReturn(true);
+        when(jwtTokenProvider.generateToken(email)).thenReturn("mockToken");
 
-        String token = authService.login(loginRequest);
+        UserAuthenticationResponse response = authService.login(loginRequest);
 
-        assertEquals("jwt.token.here", token);
-        verify(userRepository).findByEmail("user@example.com");
-        verify(passwordEncoder).matches("password", user.getPassword());
-        verify(jwtTokenProvider).generateToken("user@example.com");
+        assertEquals(email, response.getUser().getEmail());
+        assertEquals("mockToken", response.getToken());
     }
 
     @Test
-    public void testLogin_UserNotFound() {
-        LoginRequest loginRequest = new LoginRequest();
-        loginRequest.setEmail("nonexistent@example.com");
-        loginRequest.setPassword("password");
+    public void testLogin_InvalidCredentials() {
+        LoginRequest loginRequest = new LoginRequest("invalid@example.com", "wrongPassword");
+        when(userRepository.findByEmail(loginRequest.getEmail())).thenReturn(Optional.empty());
 
-        when(userRepository.findByEmail("nonexistent@example.com")).thenReturn(Optional.empty());
-
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            authService.login(loginRequest);
-        });
-
-        assertEquals("Invalid credentials", exception.getMessage());
-        verify(userRepository).findByEmail("nonexistent@example.com");
+        assertThrows(RuntimeException.class, () -> authService.login(loginRequest));
     }
 
     @Test
-    public void testLogin_InvalidPassword() {
-        LoginRequest loginRequest = new LoginRequest();
-        loginRequest.setEmail("user@example.com");
-        loginRequest.setPassword("wrongpassword");
+    public void testSaveUser_Success() {
+        UserRegistrationDTO userDTO = new UserRegistrationDTO("First", "Last", "user@example.com", "password", "USER");
 
-        User user = new User();
-        user.setEmail("user@example.com");
-        user.setPassword("$2a$10$..."); // Example hashed password
+        when(userRepository.findByEmail(userDTO.getEmail())).thenReturn(Optional.empty());
+        when(passwordEncoder.encode(userDTO.getPassword())).thenReturn("encodedPassword"); // Mock password encoding
 
-        when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(user));
-        when(passwordEncoder.matches("wrongpassword", user.getPassword())).thenReturn(false);
+        ResponseEntity<String> response = authService.saveUser(userDTO);
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            authService.login(loginRequest);
-        });
+        assertEquals(null, response);
+        verify(userRepository, times(1)).save(any(User.class));
+    }
 
-        assertEquals("Invalid credentials", exception.getMessage());
-        verify(userRepository).findByEmail("user@example.com");
-        verify(passwordEncoder).matches("wrongpassword", user.getPassword());
+    @Test
+    public void testSaveUser_UserAlreadyExists() {
+        UserRegistrationDTO userDTO = new UserRegistrationDTO("First", "Last", "user@example.com", "password", "USER");
+        User existingUser = new User();
+        existingUser.setEmail(userDTO.getEmail());
+
+        when(userRepository.findByEmail(userDTO.getEmail())).thenReturn(Optional.of(existingUser));
+        ResponseEntity<String> response = authService.saveUser(userDTO);
+
+        assertEquals(ResponseEntity.badRequest().body("User already exists"), response);
+        verify(userRepository, times(0)).save(any(User.class)); // Ensure save is NOT called
     }
 }

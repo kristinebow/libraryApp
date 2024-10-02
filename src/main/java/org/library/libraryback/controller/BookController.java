@@ -3,6 +3,7 @@ package org.library.libraryback.controller;
 import org.library.libraryback.dto.Book;
 import org.library.libraryback.service.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -56,5 +57,16 @@ public class BookController {
     public ResponseEntity<Void> returnBook(@PathVariable Long id) {
         bookService.returnBook(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<Page<Book>> searchBooks(
+            @RequestParam(required = false) String author,
+            @RequestParam(required = false) String title,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Page<Book> books = bookService.searchBooks(author, title, page, size);
+        return ResponseEntity.ok(books);
     }
 }
