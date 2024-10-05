@@ -42,13 +42,14 @@ public class BookService {
         }
     }
 
-    public void reserveBook(Long id) {
+    public void reserveBook(Long id, Long userId) {
         Optional<Book> optionalBook = bookRepository.findById(id);
         if (optionalBook.isPresent()) {
             Book book = optionalBook.get();
             LocalDate currentDate = LocalDate.now();
             LocalDate dateIn4Weeks = currentDate.plusWeeks(4);
             book.setBookedUntil(dateIn4Weeks);
+            book.setBookedByUserId(userId);
             bookRepository.save(book); // Save the updated book
         } else {
             throw new NoSuchElementException("Book not found with ID: " + id);
@@ -61,6 +62,7 @@ public class BookService {
             Book book = optionalBook.get();
             if (book.getBookedUntil() != null) {
                 book.setBookedUntil(null);
+                book.setBookedByUserId(null);
                 bookRepository.save(book); // Save the updated book
             }
         } else {
@@ -75,6 +77,7 @@ public class BookService {
             if (book.getReceived()) {
                 book.setReceived(false);
                 book.setBookedUntil(null);
+                book.setBookedByUserId(null);
                 bookRepository.save(book); // Save the updated book
             }
         } else {
@@ -85,7 +88,7 @@ public class BookService {
     public Page<Book> searchBooks(String author, String title, int page, int size) {
         if ((author == null || author.isEmpty()) && (title == null || title.isEmpty())) {
             // Fetch all books if both parameters are empty
-            return bookRepository.findAll(PageRequest.of(page, size));
+            return bookRepository.findAllSortedById(PageRequest.of(page, size));
         }
         return bookRepository.findByAuthorContainingIgnoreCaseOrTitleContainingIgnoreCaseOrderByIdAsc(author, title, PageRequest.of(page, size));
     }

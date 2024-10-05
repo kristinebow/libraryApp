@@ -41,8 +41,8 @@ public class BookController {
     }
 
     @PatchMapping("/{id}/reserve")
-    public ResponseEntity<Void> reserveBook(@PathVariable Long id) {
-        bookService.reserveBook(id);
+    public ResponseEntity<Void> reserveBook(@PathVariable Long id, @RequestParam Long userId) {
+        bookService.reserveBook(id, userId);
         return ResponseEntity.noContent().build();
     }
 

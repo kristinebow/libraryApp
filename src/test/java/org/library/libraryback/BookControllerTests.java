@@ -119,10 +119,11 @@ public class BookControllerTests {
     @Test
     public void testReserveBook() throws Exception {
         long bookId = 1L;
+        long userId = 1L;
+        
+        Mockito.doNothing().when(bookService).reserveBook(bookId, userId);
 
-        Mockito.doNothing().when(bookService).reserveBook(bookId);
-
-        mockMvc.perform(patch("/api/{id}/reserve", bookId))
+        mockMvc.perform(patch("/api/{id}/reserve?userId={userId}", bookId, userId))
                 .andExpect(MockMvcResultMatchers.status().isNoContent());
     }
 

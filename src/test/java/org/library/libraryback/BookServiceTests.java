@@ -93,7 +93,7 @@ public class BookServiceTests {
     public void testReserveBook_BookExists() {
         when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
 
-        bookService.reserveBook(1L);
+        bookService.reserveBook(1L, 1L);
 
         LocalDate expectedDate = LocalDate.now().plusWeeks(4);
         assertEquals(expectedDate, book.getBookedUntil());
@@ -105,7 +105,7 @@ public class BookServiceTests {
         when(bookRepository.findById(1L)).thenReturn(Optional.empty());
 
         Exception exception = assertThrows(NoSuchElementException.class, () -> {
-            bookService.reserveBook(1L);
+            bookService.reserveBook(1L, 1L);
         });
 
         assertEquals("Book not found with ID: 1", exception.getMessage());

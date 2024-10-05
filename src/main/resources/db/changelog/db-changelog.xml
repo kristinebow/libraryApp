@@ -10,4 +10,5 @@
     <include file="db/changelog/changesets/003_drop_returned_column.xml"/>
     <include file="db/changelog/changesets/004_create_table_user.xml"/>
     <include file="db/changelog/changesets/005_add_field_role_user.xml"/>
+    <include file="db/changelog/changesets/006_add_field_user_id_books.xml"/>
 </databaseChangeLog>

@@ -22,11 +22,13 @@ public class Book {
 
     private String author;
 
-    private Integer publicationYear;
+    private Long publicationYear;
 
     private LocalDate bookedUntil;
 
     private Boolean received;
+
+    private Long bookedByUserId;
 
 
 }

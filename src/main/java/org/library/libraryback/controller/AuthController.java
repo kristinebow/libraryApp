@@ -22,10 +22,12 @@ public class AuthController {
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest loginRequest) {
         UserAuthenticationResponse response = authService.login(loginRequest);
         String userRole = "";
+        Long userId = null;
         if (response.getUser() != null) {
             userRole = response.getUser().getRole();
+            userId = response.getUser().getId();
         }
-        return ResponseEntity.ok(new AuthResponse(response.getToken(), loginRequest.getEmail(), userRole));
+        return ResponseEntity.ok(new AuthResponse(response.getToken(), loginRequest.getEmail(), userRole, userId));
     }
 
     @PostMapping("/register")
